@@ -8,11 +8,11 @@ namespace RLE_converter
     {
         static void Main(string[] args)
         {
-            if (!File.Exists(Environment.CurrentDirectory + "\\input.txt"))
-            {
-                Console.WriteLine("input file does not exist, exiting");
-                Environment.Exit(0);
-            }
+            if (File.Exists(Environment.CurrentDirectory + "\\input.txt")) Select();
+            else Console.WriteLine("input file does not exist");
+        }
+        static void Select()
+        {
             FileStream fs = File.Open(Environment.CurrentDirectory + "\\input.txt", FileMode.Open, FileAccess.Read, FileShare.None);
             byte[] buffer = new byte[fs.Length];
             fs.Read(buffer, 0, (int)fs.Length);
@@ -24,34 +24,31 @@ namespace RLE_converter
             {
                 Console.Write("[1]converte from ASCII, [2]converte from RLE: ");
                 input = Console.ReadLine();
-                if (input == "1") foreach (string line in read) File.AppendAllText(Environment.CurrentDirectory + "\\output.txt", ToRLE(line));
-                else if (input == "2")
-                {
-
-                }
+                if ("12".Contains(input)) for (int i = 0; i < read.Length; i++) File.AppendAllText(Environment.CurrentDirectory + "\\output.txt", String.Format("{0}{1}", Converter(input, read[i].Trim()), i == read.Length - 1? "" : "\n"));
                 else Console.WriteLine("\nonly enter 1 or 2\n");
             } while (!"12".Contains(input));
         }
+        static string Converter(string option, string line) => option == "1"? ToRLE(line) : ToASCII(line);
         static string ToRLE(string line)
         {
-            int run = 0;
+            int run = 1;
             string ret = "";
-            char current = line[0];
-            for (int i = 0; i < line.Length; i++)
+            for (int i = 1; i < line.Length; i++)
             {
-                if (line[i] == current) run++;
-                else //if (line[i] != current)
+                if (line[i] != line[i - 1] || i == line.Length - 1)
                 {
-                    ret += String.Format("{0}{1:00}", current, run);
+                    ret += String.Format("{0}{1:00}", line[i - 1], run);
                     run = 1;
-                    current = line[i];
                 }
+                else run++;
             }
-            return ret += String.Format("{0}{1:00}", current, run);
+            return line.Length == 1? String.Format("{0}01", line[0]) : ret;
         }
         static string ToASCII(string line)
         {
-            return "";
+            string ret = "";
+            for (int i = 0; i < line.Length; i += 3) ret += new String(line[i], Convert.ToInt32(line.Substring(i + 1, 2)));
+            return ret;
         }
     }
 }
